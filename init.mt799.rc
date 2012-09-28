@@ -1,0 +1,287 @@
+#Copyright (c) 2012, NVIDIA CORPORATION.  All rights reserved.
+import init.nv_dev_board.usb.rc
+
+on early-init
+    mount debugfs debugfs /sys/kernel/debug
+
+    # for backwards compatibility
+    export EXTERNAL_STORAGE /mnt/sdcard
+    export EXTERNAL_STORAGE2 /mnt/sdcard2
+    mkdir /mnt/sdcard 0000 system system
+    symlink /mnt/sdcard /sdcard
+    
+    mkdir /forever 0644 system system
+    mkdir /sct 0644 system system
+
+    mkdir /mnt/sdcard2 0000 system system
+
+    # create directory for mounting usb drives
+    mkdir /mnt/usbdrive 0666 system system
+    symlink /mnt/usbdrive /usbdrive
+
+on fs
+    # Mount system to allow checkpoint and set NVSI symlink
+    mount ext4 /dev/block/platform/sdhci-tegra.3/by-name/APP /system rw
+    # Create NVSI filter symlink
+    symlink /data/data/com.nvidia.NvCPLSvc/files/com.nvidia.nvsiutilv1.xml /system/etc/permissions/com.nvidia.nvsiutilv1.xml
+    # Remount system read-only
+    mount ext4 /dev/block/platform/sdhci-tegra.3/by-name/APP /system wait ro remount
+    setprop ro.crypto.tmpfs_options size=128m,mode=0771,uid=1000,gid=1000
+    setprop ro.crypto.umount_sd false
+    mount ext4 /dev/block/platform/sdhci-tegra.3/by-name/UDA /data wait noatime nosuid nodev journal_async_commit,data=writeback,nodelalloc,errors=panic
+    mount ext4 /dev/block/platform/sdhci-tegra.3/by-name/CAC /cache wait noatime nosuid nodev journal_async_commit,data=writeback,nodelalloc,errors=panic
+    mount ext4 /dev/block/platform/sdhci-tegra.3/by-name/UDD /forever wait noatime nosuid nodev journal_async_commit,data=writeback,nodelalloc,
+    #mount ext4 /dev/block/platform/sdhci-tegra.3/by-name/SCT /sct wait noatime nosuid nodev journal_async_commit,data=writeback,nodelalloc
+
+on post-fs-data
+		mkdir /data/addon_res 0770 system system
+		mkdir /sct 0644 system system
+
+    mkdir /data/misc/wifi 0770 wifi wifi
+    mkdir /data/misc/wifi/sockets 0770 wifi wifi
+    mkdir /data/misc/dhcp 0770 dhcp dhcp
+    mkdir /data/nvcam 0700 media camera
+    chown dhcp dhcp /data/misc/dhcp
+    chown wifi wifi /data/misc/wifi
+    chown wifi wifi /data/misc/wifi/wpa_supplicant.conf
+    chown wifi wifi /data/misc/wifi/hostapd.conf
+
+    mkdir /data/misc/wminput 0776 system system
+
+    # we will remap this as /mnt/sdcard with the sdcard fuse tool
+    mkdir /data/media 0775 media_rw media_rw
+    chown media_rw media_rw /data/media
+
+    # Set indication (checked by vold) that we have finished this action
+    setprop vold.post_fs_data_done 1
+    
+    chown system system /forever
+    mkdir /forever/misc 0774 system system
+    mkdir /forever/misc/dmt 0777 system system
+    chown system system /sys/class/accelemeter/dmard06/enable_acc
+		chown system system /sys/class/accelemeter/dmard06/delay_acc
+
+on boot
+
+#reboot_flag
+chmod 0666 /dev/block/platform/sdhci-tegra.3/by-name/UDE
+
+# bluetooth
+    # bluetooth MAC address programming
+    chown bluetooth bluetooth ro.bt.bdaddr_path
+    chown bluetooth bluetooth /system/etc/bluetooth
+    #setprop ro.bt.bdaddr_path "/system/etc/bluetooth/bdaddr"
+    mkdir /data/misc/bluetoothd 0770 bluetooth bluetooth
+    mkdir /data/misc/bluetooth 0770 system system
+    
+    # bluetooth
+    # bluetooth MAC address programming
+    chmod 0660 /sys/class/rfkill/rfkill0/state
+    chmod 0660 /sys/class/rfkill/rfkill0/type
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
+
+# NFC
+   #setprop ro.nfc.port "I2C"
+
+# backlight
+    chown system system /sys/class/backlight/pwm-backlight/brightness
+
+# didim
+    chown system system /sys/class/graphics/fb0/device/smartdimmer/enable
+    chown system system /sys/class/graphics/fb0/device/smartdimmer/aggressiveness
+
+# power
+    chown system system /sys/kernel/tegra_cap/core_cap_level
+    chown system system /sys/kernel/tegra_cap/core_cap_state
+    chown system system /sys/module/cpu_tegra/parameters/cpu_user_cap
+
+# Power management settings
+    write /sys/module/cpu_tegra3/parameters/no_lp 0
+    #write /sys/module/tegra3_emc/parameters/emc_enable 0
+    #write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 1000000
+
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor conservative
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor conservative
+    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor conservative
+    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor conservative
+
+    write /sys/devices/system/cpu/cpufreq/conservative/up_threshold 95
+    write /sys/devices/system/cpu/cpufreq/conservative/down_threshold 75
+    write /sys/devices/system/cpu/cpufreq/conservative/freq_step 3
+
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor interactive
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor interactive
+    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor interactive
+    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor interactive
+    write /sys/devices/system/cpu/cpufreq/interactive/boost_factor 2
+    write /sys/devices/system/cpu/cpufreq/interactive/sustain_load 80
+    write /sys/module/cpu_tegra3/parameters/auto_hotplug 1
+    #write /sys/module/cpuidle_t3/parameters/lp2_0_in_idle 0
+    write /sys/module/cpuidle/parameters/lp2_in_idle 1
+    chown system system /sys/devices/system/cpu/cpufreq/interactive/go_maxspeed_load
+    chown system system /sys/devices/system/cpu/cpufreq/interactive/max_boost
+
+# Default Read Ahead value for sdcards
+    write /sys/block/mmcblk0/queue/read_ahead_kb 2048
+    write /sys/block/mmcblk1/queue/read_ahead_kb 2048
+
+# Wiimote connect status
+    write /data/misc/wminput/connected 0
+    chmod 0666 /data/misc/wminput/connected
+
+# GPS init
+    #write /sys/class/gpio/export 162
+    #write /sys/class/gpio/gpio162/value 0
+    #write /sys/class/gpio/gpio162/direction out
+    #chown root system /sys/class/gpio/gpio162/value
+    #chmod 0664 /sys/class/gpio/gpio162/value
+    #write /sys/class/gpio/export 163
+    #write /sys/class/gpio/gpio163/direction out
+    #write /sys/class/gpio/gpio163/value 1
+    #chown root system /sys/class/gpio/gpio163/value
+    #chmod 0664 /sys/class/gpio/gpio163/value
+
+# Load WiFi driver
+    insmod /system/lib/modules/bcmdhd.ko
+
+# BB mapping symbolic name to the logging ttyACM port
+    symlink /dev/ttyACM2 /dev/log_modem
+
+on property:ro.debuggable=1
+    # EMC debug interface
+    chmod 666 /sys/kernel/debug/tegra_emc/eack_state
+
+service wpa_supplicant /system/bin/wpa_supplicant \
+    -Dnl80211 -puse_p2p_group_interface=1 -e/data/misc/wifi/entropy.bin -dd
+#   we will start as root and wpa_supplicant will switch to user wifi
+#   after setting up the capabilities required for WEXT
+#   user wifi
+#   group wifi inet keystore
+    class main
+    socket wpa_wlan0 dgram 660 wifi wifi
+    disabled
+    oneshot
+
+#TI-ST
+service uim /system/bin/uim-sysfs
+    class core
+    user root
+    group root
+    oneshot
+
+service dhcpcd_wlan0 /system/bin/dhcpcd -ABKL
+    class main
+    disabled
+    oneshot
+
+service dhcpcd_p2p /system/bin/dhcpcd -aABKL
+    class main
+    disabled
+    oneshot
+
+service dhcpcd_eth0 /system/bin/dhcpcd -ABKL -f/system/etc/dhcpcd/dhcpcd.conf
+     class main
+     disabled
+     oneshot
+
+service dhcpcd_bnep0 /system/bin/dhcpcd -ABKL
+    class main
+    disabled
+    oneshot
+
+service iprenew_wlan0 /system/bin/dhcpcd -n
+    class main
+    disabled
+    oneshot
+
+service iprenew_p2p /system/bin/dhcpcd -n
+    class main
+    disabled
+    oneshot
+
+service iprenew_eth0 /system/bin/dhcpcd -n
+    class main
+    disabled
+    oneshot
+
+# create virtual SD card at /mnt/sdcard, based on the /data/media directory
+# deamon will drop to user/group system/media_rw after initializing
+# underlying files in /data/media wil be created with user and group media_rw (1023)
+service sdcard /system/bin/sdcard /data/media 1023 1023
+    class late_start
+
+# bugreport is triggered by the VOLUME-DOWN and VOLUME-UP keys
+service bugreport /system/bin/dumpstate -d -v -o /data/storage/bugreports/bugreport
+    class main
+    disabled
+    oneshot
+    keycodes 115 114
+
+
+#BCM
+service hciattach /system/bin/brcm_patchram_plus --enable_hci --scopcm=0,2,0,0,0,0,0,0,0,0 \
+    --baudrate 3000000 --patchramdir /etc/firmware --enable_lpm --tosleep=5000 --create_bdaddr /dev/ttyHS2
+    user bluetooth
+    group bluetooth net_bt_admin
+    disabled
+    
+    
+# Mount usb drives as /usbdrive. Generally usb drives are formatted with FAT
+# filesystem, so we support FAT as of now.
+on device-added-/sys/block/sda
+  mount vfat /dev/block/sda /mnt/usbdrive
+
+on device-removed-/sys/block/sda
+  umount /mnt/usbdrive
+
+# Prepare TF service
+import init.tf.rc
+
+# Enable NvCpuD, and set it to never poll config again
+on boot
+    setprop nvcpud.enabled true
+    setprop nvcpud.config_refresh_ms -1
+
+service nvcpud /system/bin/nvcpud
+    class main
+    user root
+    group root
+
+#Raydium touch setting
+#service rm_ts_service    /system/bin/rm_ts_server
+#    class main
+
+#Synaptics touch, allow low power mode
+#on boot
+#    write /sys/devices/sensor00/fn01/nosleep 0
+
+# create filesystems if necessary
+service setup_fs /system/bin/setup_fs \
+        /dev/block/platform/sdhci-tegra.3/by-name/UDA \
+        /dev/block/platform/sdhci-tegra.3/by-name/CAC \
+        /dev/block/platform/sdhci-tegra.3/by-name/UDD
+    class core
+    user root
+    group root
+    oneshot
+
+service pm_service_check /system/bin/pm_service check
+    class core
+    user root
+    group root
+    oneshot
+
+service pm_service_clear /system/bin/pm_service clear
+    user root
+    group root
+    disabled
+    oneshot
+
+on property:sys.kh.addon.mount=true
+    mount ext4 /dev/block/platform/sdhci-tegra.3/by-name/UDB /data/addon_res wait rw ,data=writeback,nodelalloc
+    chown system system /data/addon_res
+    setprop sys.kh.addon.mount_state true
+ 
+ 
+ 

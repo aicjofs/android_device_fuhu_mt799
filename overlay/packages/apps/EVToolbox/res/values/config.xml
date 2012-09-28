@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <bool name="config_has_wimax" translatable="false">false</bool>
+    <bool name="config_has_mobile_data" translatable="false">false</bool>
+    <bool name="config_has_mobile_radio" translatable="false">false</bool>
+    <bool name="config_allow_eclair_lock" translatable="false">false</bool>
+</resources>
