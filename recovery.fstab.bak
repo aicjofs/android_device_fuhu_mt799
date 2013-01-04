@@ -1,11 +1,10 @@
-# mount point	fstype		device
-
-/recovery       emmc            /dev/block/platform/sdhci-tegra.3/by-name/SOS
-/boot           emmc            /dev/block/platform/sdhci-tegra.3/by-name/LNX
-/system         ext4            /dev/block/platform/sdhci-tegra.3/by-name/APP
-/cache          ext4            /dev/block/platform/sdhci-tegra.3/by-name/CAC
-/misc           emmc            /dev/block/platform/sdhci-tegra.3/by-name/MSC
-/staging        emmc            /dev/block/platform/sdhci-tegra.3/by-name/USP
-/data           ext4            /dev/block/platform/sdhci-tegra.3/by-name/UDA		length=-32768
-/sdcard         vfat            /dev/block/platform/sdhci-tegra.0/by-num/p1
-/addon        	ext4            /dev/block/platform/sdhci-tegra.3/by-name/UDB
+# mount point fstype device
+/recovery         emmc    /dev/block/mmcblk0p1 
+/boot             emmc    /dev/block/mmcblk0p2 
+/system           ext4    /dev/block/mmcblk0p3 
+/cache            ext4    /dev/block/mmcblk0p4 
+/misc             emmc    /dev/block/mmcblk0p5 
+/staging          emmc    /dev/block/mmcblk0p6 
+/data             ext4    /dev/block/mmcblk0p11   length=-32768 
+/external_sdcard  vfat    /dev/block/mmcblk1p1
+/addon        	  ext4    /dev/block/mmcblk0p7

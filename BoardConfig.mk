@@ -28,7 +28,10 @@ BOARD_FLASH_BLOCK_SIZE := 131072
 TARGET_PREBUILT_KERNEL := device/fuhu/mt799/kernel
 TARGET_PREBUILT_RECOVERY_KERNEL := device/fuhu/mt799/kernel
 
-#BOARD_HAS_NO_SELECT_BUTTON := true
+BOARD_HAS_NO_SELECT_BUTTON := true
+BOARD_SUPPRESS_EMMC_WIPE := true
+BOARD_HAS_NO_REAL_SDCARD := true
+TARGET_RECOVERY_INITRC := bootable/recovery/etc/init.rc
 # Use this flag if the board has a ext4 partition larger than 2gb
 #BOARD_HAS_LARGE_FILESYSTEM := true
 
