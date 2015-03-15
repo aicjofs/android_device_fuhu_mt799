@@ -57,7 +57,6 @@ RECOVERY_SDCARD_ON_DATA := true
 TW_MAX_BRIGHTNESS := 255
 TW_BRIGHTNESS_PATH := /sys/devices/platform/pwm-backlight/backlight/pwm-backlight/brightness
 BOARD_VOLD_MAX_PARTITIONS := 16
-RECOVERY_SDCARD_ON_DATA := true
 TW_INPUT_BLACKLIST := "accelerometer\x0admard06\x0alis3dh_acc\x0alis3de_acc"
 TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
 TW_DISABLE_TTF := true
